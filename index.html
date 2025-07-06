@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Geofencing Barrier Island</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 400px; width: 100%; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<h2>Geofencing Check</h2>
+<div id="map"></div>
+
+<form id="checkForm">
+  <label for="lat">Latitude:</label>
+  <input type="number" id="lat" step="any" required>
+  <label for="lon">Longitude:</label>
+  <input type="number" id="lon" step="any" required>
+  <button type="submit">Check Location</button>
+</form>
+
+<p id="result"></p>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Turf.js -->
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+<script>
+  // Define a sample polygon (GeoJSON format) — replace this with your real barrier island coordinates
+  const barrierIslandPolygon = {
+    "type": "Feature",
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [[
+        [-80.1, 25.7],
+        [-80.0, 25.7],
+        [-80.0, 25.8],
+        [-80.1, 25.8],
+        [-80.1, 25.7]
+      ]]
+    }
+  };
+
+  // Initialize Leaflet map
+  const map = L.map('map').setView([25.75, -80.05], 13);
+
+  // Add base map tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data © OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Draw polygon on map
+  const islandLayer = L.geoJSON(barrierIslandPolygon).addTo(map);
+
+  // Handle form submission
+  document.getElementById('checkForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const lat = parseFloat(document.getElementById('lat').value);
+    const lon = parseFloat(document.getElementById('lon').value);
+
+    const point = turf.point([lon, lat]);
+
+    const isInside = turf.booleanPointInPolygon(point, barrierIslandPolygon);
+
+    document.getElementById('result').textContent = isInside ? 'YES - Inside Barrier Island' : 'NO - Outside Barrier Island';
+
+    // Add marker to map
+    L.marker([lat, lon]).addTo(map)
+      .bindPopup(isInside ? 'Inside' : 'Outside')
+      .openPopup();
+  });
+</script>
+
+</body>
+</html>
